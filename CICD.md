@@ -19,7 +19,9 @@ Pick whether you want to bump major, minor, or patch version. Script creates the
 
 ## What gets built
 
-Push a tag like `v1.0.0` and you'll get Windows builds for amd64 and arm64. Each binary gets zipped with the README and attached to the release.
+Push a tag like `v1.0.0` and you'll get a Windows amd64 build. Binary gets zipped with the README and attached to the release.
+
+Note: ARM64 builds aren't supported yet due to cross-compilation issues with CGO.
 
 ## Manual tagging
 
@@ -48,12 +50,4 @@ If you need to redo a tag:
 git tag -d v1.0.0
 git push origin :refs/tags/v1.0.0
 # then create it again
-```
-
-## Building ARM64 locally
-
-If you want to test the ARM64 build on Windows:
-
-```powershell
-$Env:GOARCH = "arm64"; go build
 ```

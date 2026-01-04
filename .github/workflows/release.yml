@@ -9,9 +9,6 @@ jobs:
   build-windows:
     name: Build Windows
     runs-on: windows-latest
-    strategy:
-      matrix:
-        goarch: [amd64, arm64]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -25,17 +22,17 @@ jobs:
         env:
           CGO_ENABLED: 1
           GOOS: windows
-          GOARCH: ${{ matrix.goarch }}
+          GOARCH: amd64
         run: |
-          $OUTPUT_NAME = "arctisbattery-windows-${{ matrix.goarch }}.exe"
+          $OUTPUT_NAME = "arctisbattery-windows-amd64.exe"
           go build -ldflags="-s -w" -o $OUTPUT_NAME
-          Compress-Archive -Path $OUTPUT_NAME, README.md -DestinationPath "arctisbattery-windows-${{ matrix.goarch }}.zip"
+          Compress-Archive -Path $OUTPUT_NAME, README.md -DestinationPath "arctisbattery-windows-amd64.zip"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: arctisbattery-windows-${{ matrix.goarch }}
-          path: arctisbattery-windows-${{ matrix.goarch }}.zip
+          name: arctisbattery-windows-amd64
+          path: arctisbattery-windows-amd64.zip
 
   create-release:
     name: Create GitHub Release
