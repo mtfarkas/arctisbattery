@@ -68,10 +68,18 @@ endif
 tag:
 	@echo "Creating new version tag..."
 ifeq ($(DETECTED_OS),Windows)
-	@for /f "usebackq" %%i in (`svu next`) do @set TAG=%%i && git tag %%i && git push origin %%i && echo Created and pushed tag: %%i
+	@powershell -ExecutionPolicy Bypass -File scripts/tag-version.ps1
 else
-	@TAG=$$(svu next) && git tag $$TAG && git push origin $$TAG && echo "Created and pushed tag: $$TAG"
+	@bash scripts/tag-version.sh
 endif
+
+.PHONY: release
+release: check
+	@echo "Preparing release..."
+	@$(MAKE) tag
+	@echo ""
+	@echo "Release initiated! GitHub Actions will build for all platforms."
+	@echo "Monitor progress at: https://github.com/mtfarkas/arctisbattery/actions"
 
 .PHONY: run
 run:
@@ -120,7 +128,8 @@ help:
 	@echo   tidy          - Run go mod tidy
 	@echo   build         - Build the binary
 	@echo   install       - Install binary to GOPATH/bin
-	@echo   tag           - Create and push new version tag using svu
+	@echo   tag           - Create and push new version tag interactively
+	@echo   release       - Run checks, create tag, and trigger GitHub release
 	@echo   run           - Run the application
 	@echo   test          - Run all tests
 	@echo   test-coverage - Run tests with coverage report
