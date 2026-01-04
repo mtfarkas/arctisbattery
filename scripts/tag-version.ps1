@@ -10,9 +10,9 @@ Write-Host "Latest tag: $LatestTag"
 # Remove 'v' prefix and split version
 $Version = $LatestTag -replace '^v', ''
 $VersionParts = $Version -split '\.'
-$Major = [int]($VersionParts[0] ?? 0)
-$Minor = [int]($VersionParts[1] ?? 0)
-$Patch = [int]($VersionParts[2] ?? 0)
+$Major = if ($VersionParts[0]) { [int]$VersionParts[0] } else { 0 }
+$Minor = if ($VersionParts[1]) { [int]$VersionParts[1] } else { 0 }
+$Patch = if ($VersionParts[2]) { [int]$VersionParts[2] } else { 0 }
 
 # Display menu
 Write-Host ""
