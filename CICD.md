@@ -19,12 +19,7 @@ Pick whether you want to bump major, minor, or patch version. Script creates the
 
 ## What gets built
 
-Push a tag like `v1.0.0` and you'll get builds for:
-- Windows (amd64 + arm64)
-- Linux (amd64 + arm64)
-- macOS (amd64 + arm64)
-
-Each binary gets zipped with the README and attached to the release.
+Push a tag like `v1.0.0` and you'll get Windows builds for amd64 and arm64. Each binary gets zipped with the README and attached to the release.
 
 ## Manual tagging
 
@@ -55,14 +50,10 @@ git push origin :refs/tags/v1.0.0
 # then create it again
 ```
 
-## Cross-compiling locally
+## Building ARM64 locally
 
-CI does this automatically, but if you need to test it:
+If you want to test the ARM64 build on Windows:
 
-```bash
-CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build
-CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build
-CGO_ENABLED=1 GOOS=windows GOARCH=arm64 go build
+```powershell
+$Env:GOARCH = "arm64"; go build
 ```
-
-Cross-compiling with CGO is annoying though. Let the CI handle it.
