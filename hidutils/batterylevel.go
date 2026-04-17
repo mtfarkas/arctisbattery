@@ -29,11 +29,11 @@ func (b BatteryLevel) String() string {
 	case BatteryLevelFull:
 		return "Full"
 	case BatteryLevelMiddle:
-		return "Good"
+		return "Medium"
 	case BatteryLevelLow:
 		return "Low"
 	case BatteryLevelEmpty:
-		return "Empty"
+		return "Critical"
 	default:
 		return "Unknown"
 	}
