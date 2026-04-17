@@ -46,7 +46,7 @@ func Init() (cleanup func(), err error) {
 		return nil, fmt.Errorf("could not open log file: %w", err)
 	}
 
-	multiWriter := io.MultiWriter(os.Stderr, logFile)
+	multiWriter := io.MultiWriter(logFile, os.Stderr)
 	log.SetOutput(multiWriter)
 	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds | log.Lshortfile)
 
