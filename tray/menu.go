@@ -6,6 +6,7 @@ import (
 	"fyne.io/systray"
 	"github.com/mtfarkas/arctisbattery/config"
 	"github.com/mtfarkas/arctisbattery/icons"
+	"github.com/mtfarkas/arctisbattery/logging"
 )
 
 func initializeTrayMenu() {
@@ -33,6 +34,7 @@ func setupQuitButton() {
 	mQuit := systray.AddMenuItem("Exit", "Quits the application")
 
 	go func() {
+		defer logging.RecoverAndLog("setupQuitButton", nil)
 		<-mQuit.ClickedCh
 		systray.Quit()
 	}()
@@ -47,6 +49,7 @@ func setupNotificationButton() {
 	}
 
 	go func() {
+		defer logging.RecoverAndLog("setupNotificationButton", nil)
 		for {
 			select {
 			case <-mNotify.ClickedCh:

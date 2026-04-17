@@ -13,6 +13,7 @@ import (
 	"github.com/mtfarkas/arctisbattery/config"
 	"github.com/mtfarkas/arctisbattery/hidutils"
 	"github.com/mtfarkas/arctisbattery/icons"
+	"github.com/mtfarkas/arctisbattery/logging"
 )
 
 var doneCtx, doneCanceller = context.WithCancel(context.Background())
@@ -38,7 +39,44 @@ func onStop() {
 	doneCanceller()
 }
 
+const maxPanicRetries = 3
+
 func updateLoop() {
+	panicCount := 0
+	backoff := 1 * time.Second
+
+	for {
+		exited := runUpdateLoop()
+		if exited {
+			return
+		}
+
+		// runUpdateLoop only returns false on panic recovery
+		panicCount++
+		if panicCount >= maxPanicRetries {
+			log.Printf("updateLoop: reached max panic retries (%d), giving up", maxPanicRetries)
+			return
+		}
+
+		log.Printf("updateLoop: recovered from panic (%d/%d), retrying in %v", panicCount, maxPanicRetries, backoff)
+		select {
+		case <-time.After(backoff):
+			backoff *= 2
+		case <-Done():
+			return
+		}
+	}
+}
+
+// runUpdateLoop runs the polling loop. Returns true for normal exit, false if it recovered from a panic.
+func runUpdateLoop() (normalExit bool) {
+	defer func() {
+		if r := recover(); r != nil {
+			logging.RecoverAndLogValue("updateLoop", r)
+			normalExit = false
+		}
+	}()
+
 	for {
 		queryDevicesAndUpdateValues()
 		timer := time.NewTimer(300 * time.Millisecond)
@@ -49,7 +87,7 @@ func updateLoop() {
 			continue
 		case <-Done():
 			timer.Stop()
-			return
+			return true
 		}
 	}
 }
@@ -121,8 +159,12 @@ func updateSystrayTooltipAndIcon() {
 		lines = append(lines, "No devices connected.")
 	}
 
-	icon, _ := icons.GetIcon(iconKey, true)
-	systray.SetIcon(*icon)
+	icon, err := icons.GetIcon(iconKey, true)
+	if err != nil {
+		log.Printf("Failed to load icon %s: %v", iconKey, err)
+	} else {
+		systray.SetIcon(*icon)
+	}
 
 	tooltipStr := fmt.Sprintf("Arctis Battery Utility\n%s", strings.Join(lines, "\n"))
 	systray.SetTooltip(tooltipStr)
@@ -131,6 +173,7 @@ func updateSystrayTooltipAndIcon() {
 // Start launches the system tray in the background.
 func Start() {
 	go func() {
+		defer logging.RecoverAndLog("systray.Run", nil)
 		systray.Run(onStart, onStop)
 	}()
 }

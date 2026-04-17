@@ -10,17 +10,26 @@ import (
 	"github.com/mtfarkas/arctisbattery/config"
 	"github.com/mtfarkas/arctisbattery/hidutils"
 	"github.com/mtfarkas/arctisbattery/icons"
+	"github.com/mtfarkas/arctisbattery/logging"
 	"github.com/mtfarkas/arctisbattery/tray"
 )
 
 func main() {
+	// set up file logging first so crashes are captured
+	cleanupLog, err := logging.Init()
+	if err != nil {
+		log.Printf("Warning: could not initialize file logging: %v", err)
+	} else {
+		defer cleanupLog()
+	}
+
 	// load config first
 	if err := config.Init(); err != nil {
 		log.Fatalf("Failed to initialize config: %v", err)
 	}
 
 	// set up HID library
-	err := hidutils.Init()
+	err = hidutils.Init()
 	if err != nil {
 		log.Fatal(err)
 	}
