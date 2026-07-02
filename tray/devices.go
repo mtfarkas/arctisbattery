@@ -38,8 +38,14 @@ func (d *deviceEntry) String() string {
 
 var availableDevices []*deviceEntry = make([]*deviceEntry, 0)
 
+type initialDeviceState struct {
+	raw    *rawDevice
+	status hidutils.ChargingState
+	level  hidutils.BatteryLevel
+}
+
 func initializeDevices() {
-	rawDevices := make([]*rawDevice, 0)
+	var initialStates []initialDeviceState
 
 	err := hid.Enumerate(hidutils.SteelSeriesVID, hid.ProductIDAny, func(info *hid.DeviceInfo) error {
 		device, err := hid.OpenPath(info.Path)
@@ -50,8 +56,9 @@ func initializeDevices() {
 			return nil
 		}
 
-		// skip devices that don't support battery info
-		_, _, err = hidutils.ReadDeviceBatteryInfo(device)
+		// skip devices that don't support battery info; capture the initial
+		// reading so createDevice can seed the entry with a real prior state
+		status, level, err := hidutils.ReadDeviceBatteryInfo(device)
 		if err != nil {
 			log.Printf("Device %s (%s) does not support battery info: %v", info.ProductStr, info.Path, err)
 			device.Close()
@@ -59,9 +66,10 @@ func initializeDevices() {
 		}
 
 		log.Printf("Found compatible device: %s", info.ProductStr)
-		rawDevices = append(rawDevices, &rawDevice{
-			Device: device,
-			Info:   info,
+		initialStates = append(initialStates, initialDeviceState{
+			raw:    &rawDevice{Device: device, Info: info},
+			status: status,
+			level:  level,
 		})
 
 		return nil
@@ -71,19 +79,18 @@ func initializeDevices() {
 		log.Printf("Error enumerating HID devices: %v", err)
 	}
 
-	for _, d := range rawDevices {
-		availableDevices = append(availableDevices, createDevice(d))
+	for _, s := range initialStates {
+		availableDevices = append(availableDevices, createDevice(s.raw, s.status, s.level))
 	}
 
 	log.Printf("Initialized %d compatible device(s)", len(availableDevices))
 }
 
-func createDevice(rawDevice *rawDevice) *deviceEntry {
-	entry := &deviceEntry{
+func createDevice(rawDevice *rawDevice, initialStatus hidutils.ChargingState, initialLevel hidutils.BatteryLevel) *deviceEntry {
+	return &deviceEntry{
 		Raw:           rawDevice,
-		BatteryLevel:  hidutils.BatteryLevelUnknown,
-		BatteryStatus: hidutils.ChargingStateUnknown,
+		BatteryLevel:  initialLevel,
+		BatteryStatus: initialStatus,
 		MenuItem:      nil,
 	}
-	return entry
 }

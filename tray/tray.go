@@ -107,8 +107,13 @@ func queryDevicesAndUpdateValues() {
 			continue
 		}
 
-		// send notification if battery just went empty
-		if notifyEnabled && level == hidutils.BatteryLevelEmpty && d.BatteryLevel != hidutils.BatteryLevelEmpty {
+		// send notification when battery transitions to empty from a known
+		// non-empty level; this deliberately excludes Unknown→Empty so a
+		// spurious all-zero HID read at Windows startup doesn't notify
+		prevKnownNonEmpty := d.BatteryLevel == hidutils.BatteryLevelLow ||
+			d.BatteryLevel == hidutils.BatteryLevelMiddle ||
+			d.BatteryLevel == hidutils.BatteryLevelFull
+		if notifyEnabled && level == hidutils.BatteryLevelEmpty && prevKnownNonEmpty {
 			if err := beeep.Alert("Arctis Battery Utility", fmt.Sprintf("Battery low: %s", d.Raw.Info.ProductStr), ""); err != nil {
 				log.Printf("Failed to send notification: %v", err)
 			}

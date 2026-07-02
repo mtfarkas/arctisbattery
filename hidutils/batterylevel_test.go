@@ -33,9 +33,9 @@ func TestBatteryLevelString(t *testing.T) {
 		expected string
 	}{
 		{BatteryLevelFull, "Full"},
-		{BatteryLevelMiddle, "Good"},
+		{BatteryLevelMiddle, "Medium"},
 		{BatteryLevelLow, "Low"},
-		{BatteryLevelEmpty, "Empty"},
+		{BatteryLevelEmpty, "Critical"},
 		{BatteryLevelUnknown, "Unknown"},
 		{BatteryLevel(999), "Unknown"}, // Invalid value
 	}
