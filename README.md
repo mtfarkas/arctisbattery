@@ -24,7 +24,7 @@ Tested with:
 Grab the latest release from the releases page, or build it yourself:
 
 ```bash
-git clone github.com/mtfarkas/arctisbattery
+git clone https://github.com/mtfarkas/arctisbattery.git
 cd arctisbattery
 make
 ```
